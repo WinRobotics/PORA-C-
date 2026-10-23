@@ -1,122 +1,153 @@
-# PORA Exercises — C++ edition
+# PORA Exercises in C++
 
-C++17 port of the exercises in `../pora-exercises` (*Principles of Robot Autonomy*).
-Every notebook / script under `chNN/exercises/` has a C++ counterpart with the **same
-explanations, docstrings, hints and `YOUR CODE STARTS HERE` / `YOUR CODE ENDS HERE` blocks**.
-Each block initially throws `pora::NotImplementedError("Need to implement code here.")`,
-just like the Python `raise NotImplementedError(...)`.
+Hands-on robotics exercises from *Principles of Robot Autonomy* (PORA), rewritten in modern
+C++17. They cover dynamics, optimal control, planning, perception, state estimation, SLAM and
+reinforcement learning.
 
-The worked-example notebooks at the top of each chapter (`chNN/*.ipynb`, e.g. `lqr.ipynb`,
-`prm_star.ipynb`) contain no exercises and are not ported.
+This is a port of the course's Python/Jupyter exercise set. Every exercise keeps the original
+explanations, equations, docstrings and hints. The parts you implement are marked the same way:
 
-## Build
+```cpp
+VectorXd robot_dynamics(const VectorXd& x, const VectorXd& u) {
+  // ##### YOUR CODE STARTS HERE #####
+  throw pora::NotImplementedError("Need to implement code here.");
+  // ###### YOUR CODE ENDS HERE ######
+}
+```
 
-Required: a C++17 compiler, CMake ≥ 3.16, Eigen 3, OpenCV 4 (with `dnn`, `calib3d`, `videoio`).
-Optional: PCL (ch08 ICP), LibTorch (ch09 CNN and the ch18 deep-RL exercises; Box2D for the
-lunar lander is downloaded automatically by CMake).
+Replace the `throw` with your implementation, rebuild, and run the exercise. Each program
+simulates, plots and animates the results the way the notebooks did.
+
+## Exercises
+
+| Chapter | Topic | Exercises (executable names) |
+|---|---|---|
+| 1 | Dynamics & simulation | `ch01_simulation`: numerical integration of a pendulum and a bicycle<br>`ch01_nonholonomic_wheeled_robot_dynamics`: unicycle model and rollouts<br>`ch01_double_integrator_dynamics`: batched rollouts |
+| 2 | Optimal control | `ch02_unicycle_optimal_control`: necessary optimality conditions and single shooting |
+| 3 | Feedback control | `ch03_pid_control`: PD control of an inverted pendulum<br>`ch03_cartpole_lqr_control`: LQR stabilization and tracking<br>`ch03_cartpole_iterative_lqr`: iLQR swing-up<br>`ch03_linear_mpc`: constrained MPC, terminal cost and feasibility<br>`ch03_unicycle_trajectory_tracking`: differential flatness tracking |
+| 4 | Motion planning | `ch04_a_star`: A* on a grid and spline smoothing<br>`ch04_rrt`: RRT, shortcutting and RRT* |
+| 6 | Cameras | `ch06_camera_extrinsics`: homographies and extrinsics<br>`ch06_camera_intrinsics`: Zhang's calibration |
+| 8 | Image processing & point clouds | `ch08_correlation_filter`: correlation and Gaussian filters<br>`ch08_icp`: ICP point cloud registration |
+| 9 | Deep learning | `ch09_cnn`: CNN classifier on CIFAR-10 |
+| 10 | Object detection | `ch10_object_detection`: YOLOv5 detection, drawing and filtering |
+| 12 | Kalman filtering | `ch12_kalman_filter`: landmark localization |
+| 13 | Localization | `ch13_ekf_localization`: EKF localization<br>`ch13_particle_filter_localization`: particle filter localization |
+| 14 | SLAM | `ch14_ekf_slam`: EKF SLAM |
+| 15 | Sensor fusion | `ch15_kalman_sensor_fusion`: IMU/lidar/GNSS fusion and bias estimation |
+| 17 | Decision making | `ch17_markovian_drone`: dynamic programming in a stochastic grid world |
+| 18 | Reinforcement learning | `ch18_widget_sales`: tabular Q-learning vs. value iteration<br>`ch18_cartpole_balance`: deep Q-learning and REINFORCE<br>`ch18_advantage_actor_critic`: A2C on a lunar lander |
+
+The sources live in `chNN/exercises/`. In the Python version, some exercises live in a
+helper file instead of the notebook (`a_star.py`, `rrt.py`, `camera_calibration.py`,
+`q_learning.py`, `reinforce.py`). They live in the matching `.cpp` file here.
+
+## Getting started
+
+### Requirements
+
+| Dependency | Needed for |
+|---|---|
+| C++17 compiler, CMake ≥ 3.16 | everything |
+| Eigen 3, OpenCV 4 | everything |
+| PCL | `ch08_icp` |
+| LibTorch | `ch09_cnn`, `ch18_cartpole_balance`, `ch18_advantage_actor_critic` |
+| Box2D 2.4.1 | `ch18_advantage_actor_critic`; downloaded automatically by CMake |
+
+On Ubuntu:
 
 ```bash
-# Ubuntu
 sudo apt install build-essential cmake libeigen3-dev libopencv-dev libpcl-dev
 
-# LibTorch (CPU), only for ch09 / ch18 deep RL
+# Optional: LibTorch (CPU build) for the deep learning / deep RL exercises
 wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.5.1%2Bcpu.zip
 unzip libtorch-cxx11-abi-shared-with-deps-2.5.1+cpu.zip -d $HOME
+```
 
-cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/libtorch
+### Build
+
+```bash
+git clone https://github.com/WinRobotics/PORA-C-.git
+cd PORA-C-
+cmake -S . -B build -DCMAKE_PREFIX_PATH=$HOME/libtorch   # omit the prefix path without LibTorch
 cmake --build build -j
 ```
 
-Exercises whose optional dependency is missing are skipped (CMake prints a message).
+If an optional dependency is missing, CMake skips the exercises that need it and prints a
+message.
 
-## Run
+### Run
 
 ```bash
 ./build/bin/ch01_simulation
-./build/bin/ch04_a_star
 PORA_SHOW=1 ./build/bin/ch12_kalman_filter   # also open each figure in a window
-PORA_SEED=3 ./build/bin/ch04_rrt             # different random outcome for unseeded exercises
+PORA_SEED=3 ./build/bin/ch04_rrt             # another random outcome for unseeded exercises
 ```
 
-- Figures (PNG), videos (MP4) and other results go to `build/outputs/<target>/`.
-- A program stops at the first block that is still unimplemented, so you can work through an
-  exercise top to bottom, re-building after each part (`cmake --build build --target <target>`).
-
-## Exercise map
-
-| Python                                           | C++ source (in `chNN/exercises/`)                                   | Target |
-|--------------------------------------------------|---------------------------------------------------------------------|--------|
-| ch01 `simulation.ipynb`                          | `simulation.cpp`                                                    | `ch01_simulation` |
-| ch01 `nonholonomic_wheeled_robot_dynamics.ipynb` + `dynamics.py` | `nonholonomic_wheeled_robot_dynamics.cpp`, `dynamics.hpp` | `ch01_nonholonomic_wheeled_robot_dynamics` |
-| ch01 `double_integrator_dynamics.ipynb`          | `double_integrator_dynamics.cpp`                                    | `ch01_double_integrator_dynamics` |
-| ch02 `unicycle_optimal_control.ipynb`            | `unicycle_optimal_control.cpp`                                      | `ch02_unicycle_optimal_control` |
-| ch03 `pid_control.ipynb`                         | `pid_control.cpp`                                                   | `ch03_pid_control` |
-| ch03 `cartpole_lqr_control.ipynb` + `cartpole_utils.py` | `cartpole_lqr_control.cpp`, `cartpole_utils.{hpp,cpp}`       | `ch03_cartpole_lqr_control` |
-| ch03 `cartpole_iterative_lqr.ipynb`              | `cartpole_iterative_lqr.cpp`                                        | `ch03_cartpole_iterative_lqr` |
-| ch03 `linear_mpc.ipynb`                          | `linear_mpc.cpp`                                                    | `ch03_linear_mpc` |
-| ch03 `unicycle_trajectory_tracking.ipynb` + `unicycle_utils.py` | `unicycle_trajectory_tracking.cpp`, `unicycle_utils.{hpp,cpp}` | `ch03_unicycle_trajectory_tracking` |
-| ch04 `a_star.ipynb` + `a_star.py` + `utils.py`   | `a_star_main.cpp`, `a_star.{hpp,cpp}`, `utils.{hpp,cpp}`            | `ch04_a_star` |
-| ch04 `rrt.ipynb` + `rrt.py`                      | `rrt_main.cpp`, `rrt.{hpp,cpp}`                                     | `ch04_rrt` |
-| ch06 `camera_extrinsics.ipynb` + `camera_calibration.py` | `camera_extrinsics.cpp`, `camera_calibration.{hpp,cpp}`     | `ch06_camera_extrinsics` |
-| ch06 `camera_intrinsics.ipynb`                   | `camera_intrinsics.cpp`                                             | `ch06_camera_intrinsics` |
-| ch08 `correlation_filter.ipynb`                  | `correlation_filter.cpp`                                            | `ch08_correlation_filter` |
-| ch08 `icp.ipynb`                                 | `icp.cpp` (PCL)                                                     | `ch08_icp` |
-| ch09 `cnn.ipynb`                                 | `cnn.cpp` (LibTorch)                                                | `ch09_cnn` |
-| ch10 `object_detection.ipynb`                    | `object_detection.cpp` (OpenCV DNN)                                 | `ch10_object_detection` |
-| ch12 `kalman_filter.ipynb`                       | `kalman_filter.cpp`                                                 | `ch12_kalman_filter` |
-| ch13 `ekf_localization.ipynb`                    | `ekf_localization.cpp`                                              | `ch13_ekf_localization` |
-| ch13 `particle_filter_localization.ipynb`        | `particle_filter_localization.cpp`                                  | `ch13_particle_filter_localization` |
-| ch14 `ekf_slam.ipynb`                            | `ekf_slam.cpp`                                                      | `ch14_ekf_slam` |
-| ch15 `kalman_sensor_fusion.ipynb` + `utils.py`   | `kalman_sensor_fusion.cpp`, `utils.hpp`                             | `ch15_kalman_sensor_fusion` |
-| ch17 `markovian_drone.ipynb`                     | `markovian_drone.cpp`                                               | `ch17_markovian_drone` |
-| ch18 `widget_sales.ipynb`                        | `widget_sales.cpp`                                                  | `ch18_widget_sales` |
-| ch18 `cartpole_balance.ipynb` + `cartpole.py`, `q_learning.py`, `reinforce.py` | `cartpole_balance.cpp`, `cartpole.{hpp,cpp}`, `q_learning.{hpp,cpp}`, `reinforce.{hpp,cpp}` (LibTorch) | `ch18_cartpole_balance` |
-| ch18 `advantage_actor_critic.ipynb` + `a2c_utils.py` | `advantage_actor_critic.cpp`, `a2c_utils.{hpp,cpp}` (LibTorch, Box2D) | `ch18_advantage_actor_critic` |
-
-## Python → C++ equivalents
-
-| Python                                   | C++ (this repo)                                                              |
-|------------------------------------------|------------------------------------------------------------------------------|
-| `numpy` arrays                           | Eigen (`Eigen::VectorXd`, `Eigen::MatrixXd`, ...)                            |
-| `matplotlib.pyplot`                      | `pora::plt` (`common/include/pora/plot.hpp`): `Figure`, `Axes::plot`, `fmt("r--")`, ... |
-| `scipy.integrate.odeint`                 | `pora::odeint(f, x0, t)` (adaptive Dormand–Prince)                           |
-| `jax.jacobian`                           | `pora::jacobian(f, x)` (central finite differences)                          |
-| `np.random.*`                            | `pora::rng()` / `pora::Rng` (`random.hpp`)                                   |
-| `cvxpy` (QP)                             | `pora::QP` (OSQP-style ADMM, `qp.hpp`)                                       |
-| `scipy.linalg.solve_discrete_are`        | `pora::solve_discrete_are`                                                   |
-| `scipy.interpolate.make_splrep` / `splev`| `pora::make_splrep` / `pora::splev` (cubic smoothing spline, `spline.hpp`)   |
-| `shapely.box`                            | `Box` / `box(...)` in `ch04/exercises/utils.hpp`                             |
-| `cv2`                                    | OpenCV C++                                                                   |
-| `open3d`, `sklearn.neighbors`            | PCL (`pcl::KdTreeFLANN`, `pcl::IterativeClosestPoint`, ...) and `pora::read_ply_points` |
-| `torch`, `torchvision`                   | LibTorch (`torch::nn`, `torch::optim`)                                       |
-| `jax` + `equinox` + `optax` (A2C)        | LibTorch                                                                     |
-| `gymnasium` CartPole-v1 / LunarLanderContinuous-v3 | C++ ports in `ch18/exercises/cartpole.cpp` / `a2c_utils.cpp` (Box2D)  |
-| torchvision FCOS / torch.hub YOLOv5      | YOLOv5s through OpenCV DNN (`ch10/exercises/yolov5s.onnx`)                   |
+- Figures (PNG), animations (MP4) and other results are written to
+  `build/outputs/<exercise>/`.
+- A program stops with `NotImplementedError: Need to implement code here.` at the first part
+  you haven't implemented yet. Work through an exercise from top to bottom and rebuild only
+  that exercise with `cmake --build build --target <exercise>`.
 
 ## Data
 
-- Chessboard images (ch06), camera-man image and bunny point clouds (ch08) are copied into
-  the corresponding `exercises/` folders.
-- **CIFAR-10 (ch09):** run `ch09/exercises/download_cifar10.sh` once.
-- **YOLOv5 (ch10):** `ch10/exercises/yolov5s.onnx` was exported from the repository's
-  `yolov5s.pt` (ONNX opset 12, simplified, so that OpenCV 4.5 can load it). To regenerate it,
-  run `ch10/exercises/export_yolov5_onnx.sh` in a Python environment with PyTorch (e.g. the
-  `pora` conda env). The notebook's sample photos (`images/airport.jpeg`, ...) are not part of
-  the original repository; pass any photo: `./build/bin/ch10_object_detection my_photo.jpg`.
+- **Included:** chessboard images (ch06), the camera-man image and the Stanford bunny point
+  clouds (ch08), and a pretrained YOLOv5s model in ONNX format (ch10).
+- **CIFAR-10 (ch09):** run `ch09/exercises/download_cifar10.sh` once (about 170 MB).
+- **Photos for object detection (ch10):** pass any image on the command line:
+  `./build/bin/ch10_object_detection my_photo.jpg`.
+- **Regenerating the YOLOv5 model:** run `ch10/exercises/export_yolov5_onnx.sh` in a Python
+  environment with PyTorch. OpenCV 4.5 needs an opset 12, simplified export.
 
-## Differences from the Python version
+## Repository layout
 
-- Random numbers come from C++ generators, so noisy simulations do not reproduce the
-  notebooks' exact numbers (the qualitative behaviour is the same).
-- `pora::jacobian` uses finite differences instead of automatic differentiation.
-- ch02: the initial co-state guess is `(-1, -1, 1)` instead of `(1, 1, -1)`. With the standard
-  Hamiltonian convention, the notebook's guess makes Newton–Raphson diverge (it does so in the
-  JAX version too). From the flipped guess it converges in about 6 iterations.
-- ch10: only the YOLOv5 model is ported (there is no C++ FCOS). The YOLOv5 TODO also includes
-  decoding the raw network output and running NMS, because there is no `Results` object.
-- ch18 widget sales: the data-generation generator uses seed 1 instead of 0. Identically seeded
-  C++ generators would correlate the random actions with the simulated demand.
-- ch18 Q-learning / REINFORCE / A2C: actions are plain `int`s / tensors. `None` (terminal next
-  state) is an undefined `torch::Tensor`. `Categorical` is replaced by `torch::multinomial` +
-  `torch::log`.
-- Interactive widgets (sliders) are replaced by saving one figure per setting/view.
+```
+CMakeLists.txt          one executable per exercise
+common/                 pora_common, the shared support library
+  include/pora/
+    core.hpp            NotImplementedError, data/output paths
+    numerics.hpp        odeint, finite-difference Jacobian, DARE solver, linspace, interp
+    random.hpp          NumPy-style random numbers (seedable via PORA_SEED)
+    plot.hpp            matplotlib-style plotting rendered with OpenCV
+    qp.hpp              convex QP solver (OSQP-style ADMM)
+    spline.hpp          cubic smoothing splines
+    ply.hpp             PLY point cloud reader
+chNN/exercises/         exercise sources and their data files
+```
+
+## Python → C++ cheat sheet
+
+| Python | C++ |
+|---|---|
+| `numpy` | Eigen (`VectorXd`, `MatrixXd`) |
+| `matplotlib.pyplot` | `pora::plt::Figure`, `Axes::plot(x, y, "r--")`, `fmt("o").ms(4).label("...")` |
+| `scipy.integrate.odeint` | `pora::odeint(f, x0, t)` |
+| `jax.jacobian` | `pora::jacobian(f, x)` (central finite differences) |
+| `np.random` | `pora::rng()`, `pora::Rng` |
+| `cvxpy` | `pora::QP` (stack the variables into one vector, add `l <= A z <= u` constraints) |
+| `scipy.linalg.solve_discrete_are` | `pora::solve_discrete_are` |
+| `scipy.interpolate.make_splrep` / `splev` | `pora::make_splrep` / `pora::splev` |
+| `shapely` boxes | `Box` / `box(...)` (`ch04/exercises/utils.hpp`) |
+| `cv2` | OpenCV C++ API |
+| `open3d`, `sklearn.neighbors` | PCL (`pcl::KdTreeFLANN`, `pcl::IterativeClosestPoint`) |
+| `torch`, `jax` + `equinox` + `optax` | LibTorch (`torch::nn`, `torch::optim`) |
+| `gymnasium` CartPole / LunarLander | C++ ports in `ch18/exercises/cartpole.cpp` and `a2c_utils.cpp` |
+
+## Differences from the Python exercises
+
+- Random numbers come from C++ generators, so noisy simulations won't reproduce the
+  notebooks' exact numbers. The qualitative behaviour is the same.
+- Jacobians use finite differences instead of automatic differentiation.
+- **ch02:** the initial co-state guess is `(-1, -1, 1)`. With the standard Hamiltonian
+  convention, the original `(1, 1, -1)` makes Newton–Raphson diverge.
+- **ch10:** only YOLOv5 is used (there is no C++ FCOS model). Your implementation also decodes
+  the raw network output and runs non-maximum suppression.
+- **ch18 widget sales:** the logged data is generated with seed 1 instead of 0, so that the
+  random actions aren't correlated with the simulated demand.
+- Interactive sliders are replaced by saving one figure per setting or view.
+
+## Credits
+
+The exercise content (problem statements, explanations, provided code and data) comes from the
+*Principles of Robot Autonomy* course exercises. This repository contains only the C++
+translation and its supporting library.
