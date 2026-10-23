@@ -1,0 +1,7 @@
+build/
+outputs/
+
+# downloaded / generated data
+ch09/exercises/data/
+ch10/exercises/.yolov5_export/
+ch10/exercises/images/
